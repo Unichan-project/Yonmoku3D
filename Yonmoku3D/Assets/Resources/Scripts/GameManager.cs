@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class GameManager : MonoBehaviour {
 
@@ -65,6 +66,8 @@ public class GameManager : MonoBehaviour {
 				if (Judgment()) {
 					isClear = true;
 					Time.timeScale = 0;
+					string data = PlayerPrefs.GetString("LastNetWorkData");
+					PlayerPrefs.SetString("LastNetWorkData", PlayerPrefs.GetString("NetWorkData"));
 				}
 			}
 		}
@@ -98,6 +101,7 @@ public class GameManager : MonoBehaviour {
 							puttingStone[(int)pos.x, (int)pos.z]++;
 							Stone stone = Instantiate(PlayerStonePrefab, pos, Quaternion.identity);
 							stone.stoneType = StoneType.PLAYER;
+							stone.CountData = GameTurnCount;
 							TurnTimer = 1f;
 							putPlayerStone = true;
 						}
@@ -112,17 +116,47 @@ public class GameManager : MonoBehaviour {
 			int posX = 0;
 			int posZ = 0;
 			while (true) {
-				posX = Random.Range(0, 4);
-				posZ = Random.Range(0, 4);
+				posX = UnityEngine.Random.Range(0, 4);
+				posZ = UnityEngine.Random.Range(0, 4);
 				if (puttingStone[posX, posZ] >= 4) continue;
+				AddingNetwork();
 				Stone stone = Instantiate(EnemyStonePrefab, new Vector3(posX, 3.75f, posZ), Quaternion.identity);
 				stone.stoneType = StoneType.ENEMY;
+				stone.CountData = GameTurnCount;
 				TurnTimer = 1f;
 				putEnemyStone = true;
 				puttingStone[posX, posZ]++;
 				break;
 			}
 		}
+	}
+
+	void MatchTurn() {
+		string Alldata = PlayerPrefs.GetString("LastNetWorkData");
+		string[] Linedata = Alldata.Split('\n');
+		string[] data;
+		int count;
+
+		
+
+		foreach(string i in Linedata) {
+		}
+
+		
+	}
+	void AddingNetwork() {
+		string data = "";
+		GameData.NetWorks.Add(StoneList);
+		foreach(var i in GameData.NetWorks) {
+			foreach(var j in i) {
+				data += j.CountData + ",";
+				data += j.tag + ",";
+				data += (int)j.transform.position.x + ",";
+				data += (int)j.transform.position.y + ",";
+				data += (int)j.transform.position.z + "\n";
+			}
+		}
+		PlayerPrefs.SetString("NetWorkData", data);
 	}
 	private bool Judgment() {
 		foreach(var i in StoneList) {

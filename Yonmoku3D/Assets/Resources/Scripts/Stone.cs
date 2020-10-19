@@ -7,9 +7,11 @@ public enum StoneType {
 	PLAYER,
 	ENEMY,
 }
+
 public class Stone : MonoBehaviour {
 
 	public StoneType stoneType;
+	public int CountData;
 
 	private bool isSaveData = false;
 	void Start() {
