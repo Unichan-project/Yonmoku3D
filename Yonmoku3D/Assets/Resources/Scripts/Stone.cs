@@ -29,7 +29,16 @@ public class Stone : MonoBehaviour {
 	private void OnCollisionEnter(Collision col) {
 		if (!isSaveData) {
 			GameManager.StoneList.Add(this);
+			Vector3 pos = transform.position;
+
+			GameData.stoneDatas[(int)pos.x, (int)pos.y, (int)pos.z].is_stone = true;
+			if(stoneType == StoneType.PLAYER)
+				GameData.stoneDatas[(int)pos.x, (int)pos.y, (int)pos.z].stone_type = true;
+			if (stoneType == StoneType.ENEMY)
+				GameData.stoneDatas[(int)pos.x, (int)pos.y, (int)pos.z].stone_type = false;
 			isSaveData = true;
+
+			GameData.NetWorks.Add(GameData.stoneDatas);
 			return;
 		}
 	}

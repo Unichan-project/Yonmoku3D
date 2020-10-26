@@ -28,7 +28,15 @@ public class GameManager : MonoBehaviour {
 
 	private bool isClear = false;
 
+	private void Start() {
+		
+	}
 	private void Update() {
+		if (Judgment()) {
+			isClear = true;
+			Time.timeScale = 0;
+			Debug.Log("win");
+		}
 		if (Input.GetMouseButtonDown(0)) {
 			// マウスクリック開始(マウスダウン)時にカメラの角度を保持(Z軸には回転させないため).
 			newAngle = MainCamera.transform.localEulerAngles;
@@ -63,12 +71,6 @@ public class GameManager : MonoBehaviour {
 				putPlayerStone = false;
 				putEnemyStone = false;
 
-				if (Judgment()) {
-					isClear = true;
-					Time.timeScale = 0;
-					string data = PlayerPrefs.GetString("LastNetWorkData");
-					PlayerPrefs.SetString("LastNetWorkData", PlayerPrefs.GetString("NetWorkData"));
-				}
 			}
 		}
 
@@ -119,175 +121,199 @@ public class GameManager : MonoBehaviour {
 				posX = UnityEngine.Random.Range(0, 4);
 				posZ = UnityEngine.Random.Range(0, 4);
 				if (puttingStone[posX, posZ] >= 4) continue;
-				AddingNetwork();
 				Stone stone = Instantiate(EnemyStonePrefab, new Vector3(posX, 3.75f, posZ), Quaternion.identity);
 				stone.stoneType = StoneType.ENEMY;
 				stone.CountData = GameTurnCount;
 				TurnTimer = 1f;
 				putEnemyStone = true;
 				puttingStone[posX, posZ]++;
+				MatchTurn();
 				break;
 			}
 		}
 	}
 
 	void MatchTurn() {
-		string Alldata = PlayerPrefs.GetString("LastNetWorkData");
-		string[] Linedata = Alldata.Split('\n');
-		string[] data;
-		int count;
-
-		
-
-		foreach(string i in Linedata) {
-		}
-
-		
-	}
-	void AddingNetwork() {
-		string data = "";
-		GameData.NetWorks.Add(StoneList);
-		foreach(var i in GameData.NetWorks) {
-			foreach(var j in i) {
-				data += j.CountData + ",";
-				data += j.tag + ",";
-				data += (int)j.transform.position.x + ",";
-				data += (int)j.transform.position.y + ",";
-				data += (int)j.transform.position.z + "\n";
+		for(int i = 0; i < 4; i++) {
+			for(int j = 0; j < 4; j++) {
+				for(int k = 0; k < 4; k++) {
+					if(GameData.stoneDatas[i, j, k].is_stone) {
+						if(GameData.stoneDatas[i,j,k].stone_type)
+							Debug.Log(new Vector3(i, j, k) + "  TYPE:PLAYER");
+						else 
+							Debug.Log(new Vector3(i, j, k) + "  TYPE:ENEMY");
+					}
+				}
 			}
 		}
-		PlayerPrefs.SetString("NetWorkData", data);
 	}
 	private bool Judgment() {
-		foreach(var i in StoneList) {
-			Vector3 posI = new Vector3((int)i.transform.position.x, (int)i.transform.position.y, (int)i.transform.position.z);
-			foreach(var j in StoneList) {
-				Vector3 posJ = new Vector3((int)j.transform.position.x, (int)j.transform.position.y, (int)j.transform.position.z);
-				foreach (var k in StoneList) {
-					Vector3 posK = new Vector3((int)k.transform.position.x, (int)k.transform.position.y, (int)k.transform.position.z);
-					foreach (var l in StoneList) {
-						Vector3 posL = new Vector3((int)l.transform.position.x, (int)l.transform.position.y, (int)l.transform.position.z);
-						if (i.stoneType == j.stoneType && i.stoneType == k.stoneType && i.stoneType == l.stoneType
-						&& i.stoneType == StoneType.PLAYER) {
-							if(posI == posJ + Vector3.forward * 1
-							&& posI == posK + Vector3.forward * 2
-							&& posI == posL + Vector3.forward * 3) {
-								i.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								j.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								k.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								l.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								return true;
-							}
-							else if (posI == posJ + Vector3.right * 1
-							&& posI == posK + Vector3.right * 2
-							&& posI == posL + Vector3.right * 3) {
-								i.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								j.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								k.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								l.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								return true;
-							}
-							else if (posI == posJ + Vector3.up * 1
-							&& posI == posK + Vector3.up * 2
-							&& posI == posL + Vector3.up * 3) {
-								i.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								j.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								k.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								l.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								return true;
-							} 
-							else if (posI == posJ + (Vector3.forward + Vector3.right) * 1
-							&& posI == posK + (Vector3.forward + Vector3.right) * 2
-							&& posI == posL + (Vector3.forward + Vector3.right) * 3) {
-								i.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								j.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								k.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								l.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								return true;
-							}
-							else if (posI == posJ + (Vector3.forward + Vector3.left) * 1
-							&& posI == posK + (Vector3.forward + Vector3.left) * 2
-							&& posI == posL + (Vector3.forward + Vector3.left) * 3) {
-								i.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								j.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								k.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								l.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								return true;
-							}
-							else if (posI == posJ + (Vector3.up + Vector3.forward) * 1
-						    && posI == posK + (Vector3.up + Vector3.forward) * 2
-							&& posI == posL + (Vector3.up + Vector3.forward) * 3) {
-								i.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								j.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								k.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								l.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								return true;
-							}
-							else if (posI == posJ + (Vector3.up + Vector3.back) * 1
-							&& posI == posK + (Vector3.up + Vector3.back) * 2
-							&& posI == posL + (Vector3.up + Vector3.back) * 3) {
-								i.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								j.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								k.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								l.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								return true;
-							} 
-							else if (posI == posJ + (Vector3.up + Vector3.right) * 1
-							&& posI == posK + (Vector3.up + Vector3.right) * 2
-							&& posI == posL + (Vector3.up + Vector3.right) * 3) {
-								i.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								j.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								k.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								l.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								return true;
-							}
-							else if (posI == posJ + (Vector3.up + Vector3.left) * 1
-							&& posI == posK + (Vector3.up + Vector3.left) * 2
-							&& posI == posL + (Vector3.up + Vector3.left) * 3) {
-								i.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								j.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								k.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								l.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								return true;
-							}
-							else if (posI == posJ + (Vector3.up + Vector3.forward + Vector3.right) * 1
-							&& posI == posK + (Vector3.up + Vector3.forward + Vector3.right) * 2
-							&& posI == posL + (Vector3.up + Vector3.forward + Vector3.right) * 3) {
-								i.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								j.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								k.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								l.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								return true;
-							}
-							else if (posI == posJ + (Vector3.up + Vector3.forward + Vector3.left) * 1
-							&& posI == posK + (Vector3.up + Vector3.forward + Vector3.left) * 2
-							&& posI == posL + (Vector3.up + Vector3.forward + Vector3.left) * 3) {
-								i.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								j.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								k.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								l.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								return true;
-							}
-							else if (posI == posJ + (Vector3.up + Vector3.back + Vector3.right) * 1
-							&& posI == posK + (Vector3.up + Vector3.back + Vector3.right) * 2
-							&& posI == posL + (Vector3.up + Vector3.back + Vector3.right) * 3) {
-								i.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								j.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								k.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								l.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								return true;
-							}
-							else if (posI == posJ + (Vector3.up + Vector3.back + Vector3.left) * 1
-							&& posI == posK + (Vector3.up + Vector3.back + Vector3.left) * 2
-							&& posI == posL + (Vector3.up + Vector3.back + Vector3.left) * 3) {
-								i.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								j.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								k.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								l.gameObject.GetComponent<MeshRenderer>().material.color = Color.green;
-								return true;
+		int x = 0, z = 0;
+		bool zloop = false;
+		while(true) {
+			if(!zloop) {
+				x++;
+				if(x > 3) {
+					zloop = true;
+					x = 0;
+				}
+			}
+			else { 
+				z++;
+				if (z > 3) {
+					break;
+				}
+			}
+
+			for(int y = 0; y < 3; y++) {
+				if(GameData.stoneDatas[x,y,z].is_stone) {
+					int count = 0;
+					bool stone_type = GameData.stoneDatas[x, y, z].stone_type;
+					if (x == 0) {
+						for (int i = 1; i < 4; i++) {
+							if (GameData.stoneDatas[i, y, z].stone_type == stone_type && GameData.stoneDatas[i, y, z].is_stone) {
+								count++;
+							} else {
+								count = 0;
+								break;
 							}
 						}
+						if (count == 3) return true;
+						if (y == 0) {
+							for (int i = 1; i < 4; i++) {
+								if (GameData.stoneDatas[i, i, z].stone_type == stone_type && GameData.stoneDatas[i, i, z].is_stone) {
+									count++;
+								} else {
+									count = 0;
+									break;
+								}
+							}
+							if (count == 3) return true;
+						} else if (y == 3) {
+							for (int i = 1; i < 4; i++) {
+								if (GameData.stoneDatas[i, 3 - i, z].stone_type == stone_type && GameData.stoneDatas[i, 3 - i, z].is_stone) {
+									count++;
+								} else {
+									count = 0;
+									break;
+								}
+							}
+							if (count == 3) return true;
+						}
 					}
+					if (z == 0) {
+						for (int i = 1; i < 4; i++) {
+							if (GameData.stoneDatas[x, y, i].stone_type == stone_type && GameData.stoneDatas[x, y, i].is_stone) {
+								count++;
+							} else {
+								count = 0;
+								break;
+							}
+						}
+						if (count == 3) return true;
+						if (y == 0) {
+							for (int i = 1; i < 4; i++) {
+								if (GameData.stoneDatas[x, i, i].stone_type == stone_type && GameData.stoneDatas[x, i, i].is_stone) {
+									count++;
+								} else {
+									count = 0;
+									break;
+								}
+							}
+							if (count == 3) return true;
+						} else if (y == 3) {
+							for (int i = 1; i < 4; i++) {
+								if (GameData.stoneDatas[x, 3 - i, i].stone_type == stone_type && GameData.stoneDatas[x, 3 - i, i].is_stone) {
+									count++;
+								} else {
+									count = 0;
+									break;
+								}
+							}
+							if (count == 3) return true;
+						}
+					}
+					if(x == 0 && z == 0) {
+						if(y == 0) {
+							for (int i = 1; i < 4; i++) {
+								if (GameData.stoneDatas[i, i, i].stone_type == stone_type && GameData.stoneDatas[i, i, i].is_stone) {
+									count++;
+								} else {
+									count = 0;
+									break;
+								}
+							}
+							if (count == 3) return true;
+						} else if (y == 3) {
+							for (int i = 1; i < 4; i++) {
+								if (GameData.stoneDatas[i, 3-i, i].stone_type == stone_type && GameData.stoneDatas[i, 3-i, i].is_stone) {
+									count++;
+								} else {
+									count = 0;
+									break;
+								}
+							}
+							if (count == 3) return true;
+						}
+
+						for (int i = 1; i < 4; i++) {
+							if (GameData.stoneDatas[i, y, i].stone_type == stone_type && GameData.stoneDatas[i, y, i].is_stone) {
+								count++;
+							} else {
+								count = 0;
+								break;
+							}
+						}
+						if (count == 3) return true;
+					} else if(x == 3 && z == 0) {
+						if (y == 0) {
+							for (int i = 1; i < 4; i++) {
+								if (GameData.stoneDatas[3-i, i, i].stone_type == stone_type && GameData.stoneDatas[3 - i, i, i].is_stone) {
+									count++;
+								} else {
+									count = 0;
+									break;
+								}
+							}
+							if (count == 3) return true;
+						} else if (y == 3) {
+							for (int i = 1; i < 4; i++) {
+								if (GameData.stoneDatas[3-i, 3 - i, i].stone_type == stone_type && GameData.stoneDatas[3 - i, 3 - i, i].is_stone) {
+									count++;
+								} else {
+									count = 0;
+									break;
+								}
+							}
+							if (count == 3) return true;
+						}
+						for (int i = 1; i < 4; i++) {
+							if (GameData.stoneDatas[3-i, y, i].stone_type == stone_type && GameData.stoneDatas[3-i, y, i].is_stone) {
+								count++;
+							} else {
+								count = 0;
+								break;
+							}
+						}
+						if (count == 3) return true;
+					}
+				}
+			}
+		}
+		for(x = 0; x < 4; x++) {
+			for(z = 0; z < 4; z++) {
+				if (GameData.stoneDatas[x, 0, z].is_stone) {
+					int count = 0;
+					bool stone_type = GameData.stoneDatas[x, 0, z].stone_type;
+					for (int y = 1; y < 4; y++) {
+						if (GameData.stoneDatas[x, y, z].stone_type == stone_type && GameData.stoneDatas[x, y, z].is_stone) {
+							count++;
+						} else {
+							count = 0;
+							break;
+						}
+					}
+					if (count == 3) return true;
 				}
 			}
 		}
