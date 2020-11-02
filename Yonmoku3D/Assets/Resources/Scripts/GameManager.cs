@@ -26,17 +26,39 @@ public class GameManager : MonoBehaviour {
 	private bool putPlayerStone = false;
 	private bool putEnemyStone = false;
 
-	private bool isClear = false;
+	private bool winStoneType;
 
 	private void Start() {
 		
 	}
+
+	private void QValueUpdate(bool whichWins) {
+		//whichWins = true -> playerWin.
+		//whichWins = false -> enemyWin.
+		if(whichWins) {
+			foreach (var data in GameData.NetWorks) {
+				for (int x = 0; x < 4; x++) {
+					for (int z = 0; z < 4; z++) {
+						data[x, 0, z].qValue = data[x, 0, z].qValue + GameData.alpha * (-100 + (GameData.gammma * ));
+					}
+				}
+			}
+		}
+
+	}
 	private void Update() {
 		if (Judgment()) {
-			isClear = true;
-			Time.timeScale = 0;
-			Debug.Log("win");
+			if(winStoneType) {
+				Debug.Log("Player win!");
+
+			} else {
+				Debug.Log("AI win!");
+			}
+
 		}
+
+		MatchTurn();
+
 		if (Input.GetMouseButtonDown(0)) {
 			// マウスクリック開始(マウスダウン)時にカメラの角度を保持(Z軸には回転させないため).
 			newAngle = MainCamera.transform.localEulerAngles;
@@ -127,22 +149,31 @@ public class GameManager : MonoBehaviour {
 				TurnTimer = 1f;
 				putEnemyStone = true;
 				puttingStone[posX, posZ]++;
-				MatchTurn();
+				GameData.NetWorks.Add(GameData.stonesData);
 				break;
 			}
 		}
 	}
 
 	void MatchTurn() {
-		for(int i = 0; i < 4; i++) {
+		GameData.StoneRotation(90);
+		for (int i = 0; i < 4; i++) {
 			for(int j = 0; j < 4; j++) {
 				for(int k = 0; k < 4; k++) {
-					if(GameData.stoneDatas[i, j, k].is_stone) {
-						if(GameData.stoneDatas[i,j,k].stone_type)
+					if(GameData.copyStonesData[i, j, k].is_stone) {
+						if (GameData.copyStonesData[i, j, k].stone_type)
+							Debug.Log(new Vector3(i, j, k) + "  TYPE:PLAYER");
+						else
+							Debug.Log(new Vector3(i, j, k) + "  TYPE:ENEMY");
+					}
+					/*
+					if(GameData.stonesData[i, j, k].is_stone) {
+						if(GameData.stonesData[i,j,k].stone_type)
 							Debug.Log(new Vector3(i, j, k) + "  TYPE:PLAYER");
 						else 
 							Debug.Log(new Vector3(i, j, k) + "  TYPE:ENEMY");
 					}
+					*/
 				}
 			}
 		}
@@ -151,169 +182,213 @@ public class GameManager : MonoBehaviour {
 		int x = 0, z = 0;
 		bool zloop = false;
 		while(true) {
-			if(!zloop) {
+
+			if (!zloop) {
 				x++;
-				if(x > 3) {
+				if (x > 3) {
 					zloop = true;
 					x = 0;
 				}
-			}
-			else { 
+			} else {
 				z++;
 				if (z > 3) {
 					break;
 				}
 			}
-
-			for(int y = 0; y < 3; y++) {
-				if(GameData.stoneDatas[x,y,z].is_stone) {
+			for (int y = 0; y < 3; y++) {
+				if(GameData.stonesData[x,y,z].is_stone) {
 					int count = 0;
-					bool stone_type = GameData.stoneDatas[x, y, z].stone_type;
+					bool stone_type = GameData.stonesData[x, y, z].stone_type;
 					if (x == 0) {
+						//zの時の横列
 						for (int i = 1; i < 4; i++) {
-							if (GameData.stoneDatas[i, y, z].stone_type == stone_type && GameData.stoneDatas[i, y, z].is_stone) {
+							if (GameData.stonesData[i, y, z].stone_type == stone_type && GameData.stonesData[i, y, z].is_stone) {
 								count++;
 							} else {
 								count = 0;
 								break;
 							}
 						}
-						if (count == 3) return true;
+						if (count == 3) {
+							winStoneType = stone_type;
+							return true;
+						}
+						//zの時の斜めUP
 						if (y == 0) {
 							for (int i = 1; i < 4; i++) {
-								if (GameData.stoneDatas[i, i, z].stone_type == stone_type && GameData.stoneDatas[i, i, z].is_stone) {
+								if (GameData.stonesData[i, i, z].stone_type == stone_type && GameData.stonesData[i, i, z].is_stone) {
 									count++;
 								} else {
 									count = 0;
 									break;
 								}
 							}
-							if (count == 3) return true;
+							if (count == 3) {
+								winStoneType = stone_type;
+								return true;
+							}
+							//zの時の斜めdown
 						} else if (y == 3) {
 							for (int i = 1; i < 4; i++) {
-								if (GameData.stoneDatas[i, 3 - i, z].stone_type == stone_type && GameData.stoneDatas[i, 3 - i, z].is_stone) {
+								if (GameData.stonesData[i, 3 - i, z].stone_type == stone_type && GameData.stonesData[i, 3 - i, z].is_stone) {
 									count++;
 								} else {
 									count = 0;
 									break;
 								}
 							}
-							if (count == 3) return true;
+							if (count == 3) {
+								winStoneType = stone_type;
+								return true;
+							}
 						}
 					}
 					if (z == 0) {
+						//ｘの時の縦列
 						for (int i = 1; i < 4; i++) {
-							if (GameData.stoneDatas[x, y, i].stone_type == stone_type && GameData.stoneDatas[x, y, i].is_stone) {
+							if (GameData.stonesData[x, y, i].stone_type == stone_type && GameData.stonesData[x, y, i].is_stone) {
 								count++;
 							} else {
 								count = 0;
 								break;
 							}
 						}
-						if (count == 3) return true;
+						if (count == 3) {
+							winStoneType = stone_type;
+							return true;
+						}
+						//ｘの時の斜めup
 						if (y == 0) {
 							for (int i = 1; i < 4; i++) {
-								if (GameData.stoneDatas[x, i, i].stone_type == stone_type && GameData.stoneDatas[x, i, i].is_stone) {
+								if (GameData.stonesData[x, i, i].stone_type == stone_type && GameData.stonesData[x, i, i].is_stone) {
 									count++;
 								} else {
 									count = 0;
 									break;
 								}
 							}
-							if (count == 3) return true;
+							if (count == 3) {
+								winStoneType = stone_type;
+								return true;
+							}
+							//ｘの時の斜めdown
 						} else if (y == 3) {
 							for (int i = 1; i < 4; i++) {
-								if (GameData.stoneDatas[x, 3 - i, i].stone_type == stone_type && GameData.stoneDatas[x, 3 - i, i].is_stone) {
+								if (GameData.stonesData[x, 3 - i, i].stone_type == stone_type && GameData.stonesData[x, 3 - i, i].is_stone) {
 									count++;
 								} else {
 									count = 0;
 									break;
 								}
 							}
-							if (count == 3) return true;
+							if (count == 3) {
+								winStoneType = stone_type;
+								return true;
+							}
 						}
 					}
 					if(x == 0 && z == 0) {
 						if(y == 0) {
 							for (int i = 1; i < 4; i++) {
-								if (GameData.stoneDatas[i, i, i].stone_type == stone_type && GameData.stoneDatas[i, i, i].is_stone) {
+								if (GameData.stonesData[i, i, i].stone_type == stone_type && GameData.stonesData[i, i, i].is_stone) {
 									count++;
 								} else {
 									count = 0;
 									break;
 								}
 							}
-							if (count == 3) return true;
+							if (count == 3) {
+								winStoneType = stone_type;
+								return true;
+							}
 						} else if (y == 3) {
 							for (int i = 1; i < 4; i++) {
-								if (GameData.stoneDatas[i, 3-i, i].stone_type == stone_type && GameData.stoneDatas[i, 3-i, i].is_stone) {
+								if (GameData.stonesData[i, 3-i, i].stone_type == stone_type && GameData.stonesData[i, 3-i, i].is_stone) {
 									count++;
 								} else {
 									count = 0;
 									break;
 								}
 							}
-							if (count == 3) return true;
+							if (count == 3) {
+								winStoneType = stone_type;
+								return true;
+							}
 						}
 
 						for (int i = 1; i < 4; i++) {
-							if (GameData.stoneDatas[i, y, i].stone_type == stone_type && GameData.stoneDatas[i, y, i].is_stone) {
+							if (GameData.stonesData[i, y, i].stone_type == stone_type && GameData.stonesData[i, y, i].is_stone) {
 								count++;
 							} else {
 								count = 0;
 								break;
 							}
 						}
-						if (count == 3) return true;
+						if (count == 3) {
+							winStoneType = stone_type;
+							return true;
+						}
 					} else if(x == 3 && z == 0) {
 						if (y == 0) {
 							for (int i = 1; i < 4; i++) {
-								if (GameData.stoneDatas[3-i, i, i].stone_type == stone_type && GameData.stoneDatas[3 - i, i, i].is_stone) {
+								if (GameData.stonesData[3-i, i, i].stone_type == stone_type && GameData.stonesData[3 - i, i, i].is_stone) {
 									count++;
 								} else {
 									count = 0;
 									break;
 								}
 							}
-							if (count == 3) return true;
+							if (count == 3) {
+								winStoneType = stone_type;
+								return true;
+							}
 						} else if (y == 3) {
 							for (int i = 1; i < 4; i++) {
-								if (GameData.stoneDatas[3-i, 3 - i, i].stone_type == stone_type && GameData.stoneDatas[3 - i, 3 - i, i].is_stone) {
+								if (GameData.stonesData[3-i, 3 - i, i].stone_type == stone_type && GameData.stonesData[3 - i, 3 - i, i].is_stone) {
 									count++;
 								} else {
 									count = 0;
 									break;
 								}
 							}
-							if (count == 3) return true;
+							if (count == 3) {
+								winStoneType = stone_type;
+								return true;
+							}
 						}
 						for (int i = 1; i < 4; i++) {
-							if (GameData.stoneDatas[3-i, y, i].stone_type == stone_type && GameData.stoneDatas[3-i, y, i].is_stone) {
+							if (GameData.stonesData[3-i, y, i].stone_type == stone_type && GameData.stonesData[3-i, y, i].is_stone) {
 								count++;
 							} else {
 								count = 0;
 								break;
 							}
 						}
-						if (count == 3) return true;
+						if (count == 3) {
+							winStoneType = stone_type;
+							return true;
+						}
 					}
 				}
 			}
 		}
 		for(x = 0; x < 4; x++) {
 			for(z = 0; z < 4; z++) {
-				if (GameData.stoneDatas[x, 0, z].is_stone) {
+				if (GameData.stonesData[x, 0, z].is_stone) {
 					int count = 0;
-					bool stone_type = GameData.stoneDatas[x, 0, z].stone_type;
+					bool stone_type = GameData.stonesData[x, 0, z].stone_type;
 					for (int y = 1; y < 4; y++) {
-						if (GameData.stoneDatas[x, y, z].stone_type == stone_type && GameData.stoneDatas[x, y, z].is_stone) {
+						if (GameData.stonesData[x, y, z].stone_type == stone_type && GameData.stonesData[x, y, z].is_stone) {
 							count++;
 						} else {
 							count = 0;
 							break;
 						}
 					}
-					if (count == 3) return true;
+					if (count == 3) {
+						winStoneType = stone_type;
+						return true;
+					}
 				}
 			}
 		}
