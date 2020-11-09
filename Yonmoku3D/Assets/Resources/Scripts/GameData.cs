@@ -10,15 +10,22 @@ public class GameData : MonoBehaviour {
 	public struct StoneData {
 		public bool is_stone;
 		public bool stone_type; //true player, false enemy;
+	}
+
+	public struct BoardData {
+		public bool[,,] is_stone;
+		public bool[,,] stone_type; //true player, false enemy;
+		public bool[,] enemyPos;
 		public float qValue;
 	}
 
-	static public StoneData[,,] stonesData = new StoneData[4,4,4];
-	static public StoneData[,,] copyStonesData = new StoneData[4,4,4];
-	static public List<float[,]> QValue = new List<float[,]>();
-	static public List<StoneData[,,]> NetWorks = new List<StoneData[,,]>();
-	static public List<StoneData[,,]> LastNetWorks = new List<StoneData[,,]>();
+	//static public StoneData[,,] stoneData = new StoneData[4,4,4];
+	//static public StoneData[,,] copyStonesData = new StoneData[4, 4, 4];
+	static public BoardData boardData;
+	static public List<BoardData> NetWorks = new List<BoardData>();
+	static public List<BoardData> LastNetWorks = new List<BoardData>();
 
+	/*
 	static public void StoneRotation(int degrees) {
 		switch(degrees) {
 			case 90:
@@ -53,4 +60,5 @@ public class GameData : MonoBehaviour {
 
 		}
 	}
+	*/
 }

@@ -27,37 +27,58 @@ public class GameManager : MonoBehaviour {
 	private bool putEnemyStone = false;
 
 	private bool winStoneType;
+	private bool isGameover = false;
 
 	private void Start() {
-		
 	}
-
+	/*
 	private void QValueUpdate(bool whichWins) {
 		//whichWins = true -> playerWin.
 		//whichWins = false -> enemyWin.
-		if(whichWins) {
-			foreach (var data in GameData.NetWorks) {
-				for (int x = 0; x < 4; x++) {
+		float reward = 20;
+		if (whichWins) reward = -20;
+
+		foreach (var data in GameData.NetWorks) {
+			for (int x = 0; x < 4; x++) {
+				for (int y = 0; y < 4; y++) {
 					for (int z = 0; z < 4; z++) {
-						data[x, 0, z].qValue = data[x, 0, z].qValue + GameData.alpha * (-100 + (GameData.gammma * ));
+						if (data[x, y, z].is_stone && !data[x, y, z].stone_type) {
+							float maxQ = 0f;
+							for (int xx = 0; xx < 4; xx++) {
+								for (int zz = 0; zz < 4; zz++) {
+									maxQ = Mathf.Max(maxQ, data[xx, 0, zz].qValue);
+								}
+							}
+							data[x, 0, z].qValue = data[x, 0, z].qValue + (GameData.alpha * (reward + (GameData.gammma * maxQ) - data[x, 0, z].qValue));
+						}
 					}
 				}
 			}
 		}
-
 	}
+	*/
 	private void Update() {
-		if (Judgment()) {
-			if(winStoneType) {
-				Debug.Log("Player win!");
-
-			} else {
-				Debug.Log("AI win!");
+	/*
+		if (!isGameover) {
+			if (Judgment()) {
+				if (winStoneType) {
+					Debug.Log("Player win!");
+				} else {
+					Debug.Log("AI win!");
+				}
+				QValueUpdate(winStoneType);
+				for (int z = 3; z >= 0; z--) {
+					string datastr = "";
+					for (int x = 0; x < 4; x++) {
+						datastr += GameData.stonesData[x, 0, z].qValue + ", ";
+					}
+					Debug.Log(datastr);
+				}
+				isGameover = true;
+				Time.timeScale = 0f;
 			}
-
 		}
-
-		MatchTurn();
+		*/
 
 		if (Input.GetMouseButtonDown(0)) {
 			// マウスクリック開始(マウスダウン)時にカメラの角度を保持(Z軸には回転させないため).
@@ -149,14 +170,13 @@ public class GameManager : MonoBehaviour {
 				TurnTimer = 1f;
 				putEnemyStone = true;
 				puttingStone[posX, posZ]++;
-				GameData.NetWorks.Add(GameData.stonesData);
 				break;
 			}
 		}
 	}
 
 	void MatchTurn() {
-		GameData.StoneRotation(90);
+		//GameData.StoneRotation(90);
 		for (int i = 0; i < 4; i++) {
 			for(int j = 0; j < 4; j++) {
 				for(int k = 0; k < 4; k++) {

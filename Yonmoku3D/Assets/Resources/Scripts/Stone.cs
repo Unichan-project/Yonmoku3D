@@ -30,14 +30,16 @@ public class Stone : MonoBehaviour {
 			GameManager.StoneList.Add(this);
 			Vector3 pos = transform.position;
 
-			GameData.stonesData[(int)pos.x, (int)pos.y, (int)pos.z].is_stone = true;
-			if(stoneType == StoneType.PLAYER)
-				GameData.stonesData[(int)pos.x, (int)pos.y, (int)pos.z].stone_type = true;
-			if (stoneType == StoneType.ENEMY)
-				GameData.stonesData[(int)pos.x, (int)pos.y, (int)pos.z].stone_type = false;
+			GameData.boardData.is_stone[(int)pos.x, (int)pos.y, (int)pos.z] = true;
+			if (stoneType == StoneType.PLAYER) {
+				GameData.boardData.stone_type[(int)pos.x, (int)pos.y, (int)pos.z] = true;
+			}
+			if (stoneType == StoneType.ENEMY) {
+				GameData.boardData.stone_type[(int)pos.x, (int)pos.y, (int)pos.z] = false;
+				GameData.boardData.enemyPos[(int)pos.x, (int)pos.z] = true;
+			}
 			isSaveData = true;
 
-			GameData.NetWorks.Add(GameData.stonesData);
 			return;
 		}
 	}
