@@ -7,23 +7,16 @@ public class GameData : MonoBehaviour {
 	static public float alpha = 0.3f;
 	static public float epsilon = 0.2f;
 
-	public struct StoneData {
-		public bool is_stone;
-		public bool stone_type; //true player, false enemy;
-	}
-
 	public struct BoardData {
 		public bool[,,] is_stone;
 		public bool[,,] stone_type; //true player, false enemy;
 		public bool[,] enemyPos;
-		public float qValue;
+		public float[,] qValue;
 	}
 
-	//static public StoneData[,,] stoneData = new StoneData[4,4,4];
-	//static public StoneData[,,] copyStonesData = new StoneData[4, 4, 4];
 	static public BoardData boardData;
 	static public List<BoardData> NetWorks = new List<BoardData>();
-	static public List<BoardData> LastNetWorks = new List<BoardData>();
+	//static public List<BoardData> LastNetWorks = new List<BoardData>();
 
 	/*
 	static public void StoneRotation(int degrees) {

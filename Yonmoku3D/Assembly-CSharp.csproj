@@ -66,6 +66,7 @@
     <Compile Include="Assets\Resources\Scripts\GameManager.cs" />
     <Compile Include="Assets\Resources\Scripts\PlayerStone.cs" />
     <Compile Include="Assets\Resources\Scripts\Stone.cs" />
+    <Compile Include="Assets\Resources\Scripts\test.cs" />
     <Reference Include="UnityEngine">
       <HintPath>C:/Program Files/Unity/Editor/Data/Managed/UnityEngine/UnityEngine.dll</HintPath>
     </Reference>

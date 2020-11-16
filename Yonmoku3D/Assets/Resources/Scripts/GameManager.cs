@@ -5,8 +5,6 @@ using System;
 
 public class GameManager : MonoBehaviour {
 
-	static public List<Stone> StoneList = new List<Stone>();
-
 	public int[,] puttingStone = new int[4, 4];
 
 	public GameObject MainCamera;
@@ -29,9 +27,16 @@ public class GameManager : MonoBehaviour {
 	private bool winStoneType;
 	private bool isGameover = false;
 
+	private void Awake() {
+		GameData.boardData.is_stone = new bool[4, 4, 4];
+		GameData.boardData.stone_type = new bool[4, 4, 4];
+		GameData.boardData.enemyPos = new bool[4, 4];
+		GameData.boardData.qValue = new float[4, 4];
+	}
+
 	private void Start() {
 	}
-	/*
+	
 	private void QValueUpdate(bool whichWins) {
 		//whichWins = true -> playerWin.
 		//whichWins = false -> enemyWin.
@@ -42,23 +47,26 @@ public class GameManager : MonoBehaviour {
 			for (int x = 0; x < 4; x++) {
 				for (int y = 0; y < 4; y++) {
 					for (int z = 0; z < 4; z++) {
-						if (data[x, y, z].is_stone && !data[x, y, z].stone_type) {
+						//data.qValue[x, z] *= GameData.alpha;
+						if (data.is_stone[x,y,z] && data.enemyPos[x, z]) {
 							float maxQ = 0f;
 							for (int xx = 0; xx < 4; xx++) {
 								for (int zz = 0; zz < 4; zz++) {
-									maxQ = Mathf.Max(maxQ, data[xx, 0, zz].qValue);
+									maxQ = Mathf.Max(maxQ, data.qValue[xx, zz]);
 								}
 							}
-							data[x, 0, z].qValue = data[x, 0, z].qValue + (GameData.alpha * (reward + (GameData.gammma * maxQ) - data[x, 0, z].qValue));
+							float q = data.qValue[x, z] + (GameData.alpha * (reward + (GameData.gammma * maxQ) - data.qValue[x, z]));
+							data.qValue[x, z] = q;
+						} else { 
 						}
 					}
 				}
 			}
 		}
 	}
-	*/
+	
 	private void Update() {
-	/*
+	
 		if (!isGameover) {
 			if (Judgment()) {
 				if (winStoneType) {
@@ -67,18 +75,22 @@ public class GameManager : MonoBehaviour {
 					Debug.Log("AI win!");
 				}
 				QValueUpdate(winStoneType);
-				for (int z = 3; z >= 0; z--) {
-					string datastr = "";
-					for (int x = 0; x < 4; x++) {
-						datastr += GameData.stonesData[x, 0, z].qValue + ", ";
+				for (int i = 0; i < GameData.NetWorks.Count; i++) {
+					for (int z = 3; z >= 0; z--) {
+						string datastr = "";
+						for (int x = 0; x < 4; x++) {
+							datastr += GameData.NetWorks[i].qValue[x, z] + ", ";
+						}
+						Debug.Log(datastr);
 					}
-					Debug.Log(datastr);
+					Debug.Log("=====================================================================");
 				}
+				
 				isGameover = true;
 				Time.timeScale = 0f;
 			}
 		}
-		*/
+		
 
 		if (Input.GetMouseButtonDown(0)) {
 			// マウスクリック開始(マウスダウン)時にカメラの角度を保持(Z軸には回転させないため).
@@ -98,12 +110,6 @@ public class GameManager : MonoBehaviour {
 			MainCamera.gameObject.transform.localEulerAngles = newAngle;
 
 			lastMousePosition = Input.mousePosition;
-		}
-
-		if (Input.GetKeyDown(KeyCode.D)) {
-			foreach (var i in StoneList) {
-				Debug.Log((int)i.transform.position.y);
-			}
 		}
 
 		if (TurnTimer > 0) {
@@ -176,24 +182,15 @@ public class GameManager : MonoBehaviour {
 	}
 
 	void MatchTurn() {
-		//GameData.StoneRotation(90);
 		for (int i = 0; i < 4; i++) {
 			for(int j = 0; j < 4; j++) {
 				for(int k = 0; k < 4; k++) {
-					if(GameData.copyStonesData[i, j, k].is_stone) {
-						if (GameData.copyStonesData[i, j, k].stone_type)
+					if(GameData.boardData.is_stone[i, j, k]) {
+						if (GameData.boardData.stone_type[i, j, k])
 							Debug.Log(new Vector3(i, j, k) + "  TYPE:PLAYER");
 						else
 							Debug.Log(new Vector3(i, j, k) + "  TYPE:ENEMY");
 					}
-					/*
-					if(GameData.stonesData[i, j, k].is_stone) {
-						if(GameData.stonesData[i,j,k].stone_type)
-							Debug.Log(new Vector3(i, j, k) + "  TYPE:PLAYER");
-						else 
-							Debug.Log(new Vector3(i, j, k) + "  TYPE:ENEMY");
-					}
-					*/
 				}
 			}
 		}
@@ -216,13 +213,13 @@ public class GameManager : MonoBehaviour {
 				}
 			}
 			for (int y = 0; y < 3; y++) {
-				if(GameData.stonesData[x,y,z].is_stone) {
+				if(GameData.boardData.is_stone[x, y, z]) {
 					int count = 0;
-					bool stone_type = GameData.stonesData[x, y, z].stone_type;
+					bool stone_type = GameData.boardData.stone_type[x, y, z];
 					if (x == 0) {
 						//zの時の横列
 						for (int i = 1; i < 4; i++) {
-							if (GameData.stonesData[i, y, z].stone_type == stone_type && GameData.stonesData[i, y, z].is_stone) {
+							if (GameData.boardData.stone_type[i, y, z] == stone_type && GameData.boardData.is_stone[i, y, z]) {
 								count++;
 							} else {
 								count = 0;
@@ -236,7 +233,7 @@ public class GameManager : MonoBehaviour {
 						//zの時の斜めUP
 						if (y == 0) {
 							for (int i = 1; i < 4; i++) {
-								if (GameData.stonesData[i, i, z].stone_type == stone_type && GameData.stonesData[i, i, z].is_stone) {
+								if (GameData.boardData.stone_type[i, i, z] == stone_type && GameData.boardData.is_stone[i, i, z]) {
 									count++;
 								} else {
 									count = 0;
@@ -250,7 +247,7 @@ public class GameManager : MonoBehaviour {
 							//zの時の斜めdown
 						} else if (y == 3) {
 							for (int i = 1; i < 4; i++) {
-								if (GameData.stonesData[i, 3 - i, z].stone_type == stone_type && GameData.stonesData[i, 3 - i, z].is_stone) {
+								if (GameData.boardData.stone_type[i, 3 - i, z] == stone_type && GameData.boardData.is_stone[i, 3 - i, z]) {
 									count++;
 								} else {
 									count = 0;
@@ -266,7 +263,7 @@ public class GameManager : MonoBehaviour {
 					if (z == 0) {
 						//ｘの時の縦列
 						for (int i = 1; i < 4; i++) {
-							if (GameData.stonesData[x, y, i].stone_type == stone_type && GameData.stonesData[x, y, i].is_stone) {
+							if (GameData.boardData.stone_type[x, y, i] == stone_type && GameData.boardData.is_stone[x, y, i]) {
 								count++;
 							} else {
 								count = 0;
@@ -280,7 +277,7 @@ public class GameManager : MonoBehaviour {
 						//ｘの時の斜めup
 						if (y == 0) {
 							for (int i = 1; i < 4; i++) {
-								if (GameData.stonesData[x, i, i].stone_type == stone_type && GameData.stonesData[x, i, i].is_stone) {
+								if (GameData.boardData.stone_type[x, i, i] == stone_type && GameData.boardData.is_stone[x, i, i]) {
 									count++;
 								} else {
 									count = 0;
@@ -294,7 +291,7 @@ public class GameManager : MonoBehaviour {
 							//ｘの時の斜めdown
 						} else if (y == 3) {
 							for (int i = 1; i < 4; i++) {
-								if (GameData.stonesData[x, 3 - i, i].stone_type == stone_type && GameData.stonesData[x, 3 - i, i].is_stone) {
+								if (GameData.boardData.stone_type[x, 3 - i, i] == stone_type && GameData.boardData.is_stone[x, 3 - i, i]) {
 									count++;
 								} else {
 									count = 0;
@@ -310,7 +307,7 @@ public class GameManager : MonoBehaviour {
 					if(x == 0 && z == 0) {
 						if(y == 0) {
 							for (int i = 1; i < 4; i++) {
-								if (GameData.stonesData[i, i, i].stone_type == stone_type && GameData.stonesData[i, i, i].is_stone) {
+								if (GameData.boardData.stone_type[i, i, i] == stone_type && GameData.boardData.is_stone[i, i, i]) {
 									count++;
 								} else {
 									count = 0;
@@ -323,7 +320,7 @@ public class GameManager : MonoBehaviour {
 							}
 						} else if (y == 3) {
 							for (int i = 1; i < 4; i++) {
-								if (GameData.stonesData[i, 3-i, i].stone_type == stone_type && GameData.stonesData[i, 3-i, i].is_stone) {
+								if (GameData.boardData.stone_type[i, 3-i, i] == stone_type && GameData.boardData.is_stone[i, 3-i, i]) {
 									count++;
 								} else {
 									count = 0;
@@ -337,7 +334,7 @@ public class GameManager : MonoBehaviour {
 						}
 
 						for (int i = 1; i < 4; i++) {
-							if (GameData.stonesData[i, y, i].stone_type == stone_type && GameData.stonesData[i, y, i].is_stone) {
+							if (GameData.boardData.stone_type[i, y, i] == stone_type && GameData.boardData.is_stone[i, y, i]) {
 								count++;
 							} else {
 								count = 0;
@@ -351,7 +348,7 @@ public class GameManager : MonoBehaviour {
 					} else if(x == 3 && z == 0) {
 						if (y == 0) {
 							for (int i = 1; i < 4; i++) {
-								if (GameData.stonesData[3-i, i, i].stone_type == stone_type && GameData.stonesData[3 - i, i, i].is_stone) {
+								if (GameData.boardData.stone_type[3-i, i, i] == stone_type && GameData.boardData.is_stone[3 - i, i, i]) {
 									count++;
 								} else {
 									count = 0;
@@ -364,7 +361,7 @@ public class GameManager : MonoBehaviour {
 							}
 						} else if (y == 3) {
 							for (int i = 1; i < 4; i++) {
-								if (GameData.stonesData[3-i, 3 - i, i].stone_type == stone_type && GameData.stonesData[3 - i, 3 - i, i].is_stone) {
+								if (GameData.boardData.stone_type[3-i, 3 - i, i] == stone_type && GameData.boardData.is_stone[3 - i, 3 - i, i]) {
 									count++;
 								} else {
 									count = 0;
@@ -377,7 +374,7 @@ public class GameManager : MonoBehaviour {
 							}
 						}
 						for (int i = 1; i < 4; i++) {
-							if (GameData.stonesData[3-i, y, i].stone_type == stone_type && GameData.stonesData[3-i, y, i].is_stone) {
+							if (GameData.boardData.stone_type[3-i, y, i] == stone_type && GameData.boardData.is_stone[3-i, y, i]) {
 								count++;
 							} else {
 								count = 0;
@@ -394,11 +391,11 @@ public class GameManager : MonoBehaviour {
 		}
 		for(x = 0; x < 4; x++) {
 			for(z = 0; z < 4; z++) {
-				if (GameData.stonesData[x, 0, z].is_stone) {
+				if (GameData.boardData.is_stone[x, 0, z]) {
 					int count = 0;
-					bool stone_type = GameData.stonesData[x, 0, z].stone_type;
+					bool stone_type = GameData.boardData.stone_type[x, 0, z];
 					for (int y = 1; y < 4; y++) {
-						if (GameData.stonesData[x, y, z].stone_type == stone_type && GameData.stonesData[x, y, z].is_stone) {
+						if (GameData.boardData.stone_type[x, y, z] == stone_type && GameData.boardData.is_stone[x, y, z]) {
 							count++;
 						} else {
 							count = 0;
