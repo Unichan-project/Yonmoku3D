@@ -1,7 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
+using UnityEngine.SceneManagement;
+using System.IO;
 
 public class GameManager : MonoBehaviour {
 
@@ -35,6 +36,8 @@ public class GameManager : MonoBehaviour {
 	}
 
 	private void Start() {
+		isGameover = false;
+		GameData.NetWorks.Clear();
 	}
 	
 	private void QValueUpdate(bool whichWins) {
@@ -74,20 +77,29 @@ public class GameManager : MonoBehaviour {
 				} else {
 					Debug.Log("AI win!");
 				}
+				foreach (var data in GameData.NetWorks) {
+					GameData.AllNetWorks.Add(data);
+				}
 				QValueUpdate(winStoneType);
-				for (int i = 0; i < GameData.NetWorks.Count; i++) {
+				for (int i = 0; i < GameData.AllNetWorks.Count; i++) {
 					for (int z = 3; z >= 0; z--) {
 						string datastr = "";
 						for (int x = 0; x < 4; x++) {
-							datastr += GameData.NetWorks[i].qValue[x, z] + ", ";
+							datastr += GameData.AllNetWorks[i].qValue[x, z] + ", ";
 						}
 						Debug.Log(datastr);
 					}
 					Debug.Log("=====================================================================");
 				}
-				
 				isGameover = true;
-				Time.timeScale = 0f;
+				string str = "{\n";
+				foreach(var data in GameData.AllNetWorks) {
+					//for(data.is_stone)
+				}
+				StreamWriter sw = new StreamWriter(@"data.json");
+				sw.Write(str);
+				sw.Close();
+				SceneManager.LoadScene("GameScene");
 			}
 		}
 		
@@ -166,10 +178,36 @@ public class GameManager : MonoBehaviour {
 		if(GameTurnCount % 2 == 1 && !putEnemyStone) {
 			int posX = 0;
 			int posZ = 0;
+			int rand = Random.Range(0, 10);
 			while (true) {
-				posX = UnityEngine.Random.Range(0, 4);
-				posZ = UnityEngine.Random.Range(0, 4);
-				if (puttingStone[posX, posZ] >= 4) continue;
+				float maxQ = 0;
+				if (rand >= 3) {
+					foreach (var data in GameData.AllNetWorks) {
+						if (data.is_stone == GameData.boardData.is_stone
+						&& data.stone_type == GameData.boardData.stone_type
+						&& data.enemyPos == GameData.boardData.enemyPos) {
+							for (int x = 0; x < 4; x++) {
+								for (int z = 0; z < 4; z++) {
+									if (maxQ < data.qValue[x, z]) {
+										if (puttingStone[posX, posZ] >= 4) continue;
+										maxQ = data.qValue[x, z];
+										posX = x;
+										posZ = z;
+									}
+								}
+							}
+						}
+					}
+					if (maxQ == 0) {
+						rand = 0;
+						continue;
+					}
+				} else {
+					posX = Random.Range(0, 4);
+					posZ = Random.Range(0, 4);
+					if (puttingStone[posX, posZ] >= 4) continue;
+				}
+
 				Stone stone = Instantiate(EnemyStonePrefab, new Vector3(posX, 3.75f, posZ), Quaternion.identity);
 				stone.stoneType = StoneType.ENEMY;
 				stone.CountData = GameTurnCount;

@@ -1,0 +1,22 @@
+{
+	"stone_data": [
+		{
+			"is_stone": true,
+			"stone_pos": [0, 0, 0],
+			"stone_type": true
+		},
+		{
+			
+		}
+	],
+	"q_value": [
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		0, 0, 0, 0
+	]
+	"enemy_pos": [0, 0, 0]
+},
+{
+	
+}

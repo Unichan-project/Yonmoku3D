@@ -16,6 +16,7 @@ public class GameData : MonoBehaviour {
 
 	static public BoardData boardData;
 	static public List<BoardData> NetWorks = new List<BoardData>();
+	static public List<BoardData> AllNetWorks = new List<BoardData>();
 	//static public List<BoardData> LastNetWorks = new List<BoardData>();
 
 	/*
